@@ -1,0 +1,161 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+.backgroud {
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0,0,0,.9);
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.shadow {
+  position: absolute;
+  opacity: 0.5;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  background-color: #000;
+}
+.cropping {
+  position: absolute;
+  top: 0;
+}
+
+.viewer-container {
+  position: relative;
+}
+
+
+.svg-viewer {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  overflow: visible;
+}
+
+.cropping-dot {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background-color: white;
+  z-index: 1;
+}
+
+.backgroud {
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0,0,0,.9);
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  overflow: hidden;
+}
+
+.exit-button {
+  border: none;
+  background: none;
+  color: white;
+  width: 50px;
+  transition: all 0.2s ease-in;
+}
+.exit-button:hover {
+  transform: scale(1.1);
+}
+
+.navbar-viewer {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  background-color: rgba(0,0,0,.5);
+  align-items:center;
+}
+
+.button {
+  border-radius: 5px;
+  background-color: rgb(30,30,30);
+  transition: all .2s ease-in;
+  color: white;
+  height: 30px;
+}
+.button:hover {
+  background-color: rgb(66,66,66);
+}
+.shadow {
+  position: relative;
+  opacity: 0.5;
+  width:100%;
+  height:100%;
+}
+.cropping {
+  position: absolute;
+}
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+
+.filter-side-bar {
+  position: absolute;
+  width: 20%;
+  right: 0;
+  top: 0;
+  height: 100%;
+  background-color: white;
+  padding: 20px;
+  color: black;
+}

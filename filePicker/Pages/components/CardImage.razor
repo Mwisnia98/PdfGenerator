@@ -1,0 +1,66 @@
+﻿@using filePicker.Data;
+@using filePicker.Extensions;
+@using filePicker.Model;
+@using Microsoft.Maui.Controls;
+@inject ImageLogic data;
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<div class="card-image">
+    <p class="card-image-index">@(img.Index + 1)</p>
+    <img src="@img.ThumbnailBase64" />
+       <div>
+        <button class="btn btn-primary" @onclick="ShowFullScreen">Show</button>
+        <button class="btn btn-danger" @onclick="async () => await ClickRemove()">Remove</button>
+    </div>
+</div>
+
+
+@code {
+    [Parameter]
+    public ImageModel img{ get; set; }
+    [Parameter]
+    public Action change { get; set; }
+
+    private DotNetObjectReference<CardImage>? objRef;
+    private string pathToImage = "";
+
+
+    private IJSObjectReference? module;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/react/main.js");
+            objRef = DotNetObjectReference.Create(this);
+        }
+    }
+
+    private async Task ClickRemove()
+    {
+        data.RemoveImage(img);
+        change();
+    }
+    private async Task ShowFullScreen()
+    {
+        await module.InvokeVoidAsync("render", objRef, img.path.getBase64FromFile(null, null, 100), img.Name);
+        GC.Collect();
+    }
+    [JSInvokable]
+    public async Task ChangedImageFromZoom(string base64, string name)
+    {
+        data.ChangeImage(base64, name);
+        img.ThumbnailBase64 = base64;
+        this.StateHasChanged();
+    }
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        if (module is not null)
+        {
+            await module.DisposeAsync();
+        }
+    }
+}

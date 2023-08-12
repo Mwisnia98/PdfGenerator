@@ -1,0 +1,73 @@
+﻿@page "/gallery"
+@using System.Drawing;
+@using System.Text;
+@using PdfSharp.Fonts;
+@using PdfSharp.Pdf;
+@using filePicker.Data
+@using filePicker.Extensions;
+@using filePicker.Helpers;
+@using filePicker.Logic;
+@using filePicker.Model;
+@using filePicker.Pages.components
+@inject ImageLogic imgs;
+@inject IFolderPicker folderPicker;
+
+@if (Loading)
+{
+    <Loader />
+}
+else if (imgs.LoadedImages)
+{
+    <GalleryLoadedImg ChangePage="ChangePage" ImageArray="ImageArray" page="page" setLoading="(loading) => {Loading = loading; StateHasChanged();}" StateChangedParent="StateHasChanged" />
+    
+}
+else{
+    <div class="gallery-wrapper">
+        <button class="btn btn-primary" @onclick="LoadFilesChange">Pick images</button>
+    </div>
+}
+
+@code {
+    private int page = 1;
+    private PaginatedList<ImageModel> ImageArray { get; set; }
+    private bool Loading { get; set; } = false;
+
+    protected override void OnInitialized()
+    {
+        if (imgs.LoadedImages && ImageArray is null)
+        {
+            imgs.ClearAll();
+        }
+    }
+
+    private async Task LoadFilesChange()
+    {
+        await this.InvokeAsync(() =>
+        {
+            Loading = true;
+            StateHasChanged();
+        });
+        await this.InvokeAsync(async () =>
+        {
+            var result = await folderPicker.PickFiles("Pick images to pdf");
+            await result.CopyFileAndRemoveOrientation(imgs.GetBasePath());
+            foreach ((FileResult item, int idx) in result.Select((z, idx) => (z, idx)))
+            {
+                imgs.AddImage(new() { Name = item.FileName, Index = idx, ThumbnailBase64 = Path.Combine(item.FullPath).getBase64FromFile(320, 240, 75) });
+            }
+            ImageArray = imgs.GetPagginationImages(page - 1);
+            Loading = false;
+            StateHasChanged();
+        });
+        
+    }
+    private void ChangePage(int i)
+    {
+        page = i;
+        ImageArray = imgs.GetPagginationImages(page - 1);
+        StateHasChanged();
+    }
+
+
+
+}

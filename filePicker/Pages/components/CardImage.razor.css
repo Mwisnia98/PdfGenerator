@@ -1,0 +1,22 @@
+﻿.card-image {
+    height: 100%;
+    width: 100%;
+    border: 1px solid #d3d2d2;
+    border-radius: 10px;
+    box-shadow: 0px 0px 5px 0px black;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px 0px;
+    position: relative;
+}
+.card-image img {
+    width:180px;
+}
+
+.card-image-index {
+    position: absolute;
+    left: 0;
+    top: 0;
+}

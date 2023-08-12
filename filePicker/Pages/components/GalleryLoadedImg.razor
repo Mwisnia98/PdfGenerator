@@ -1,0 +1,87 @@
+﻿@using PdfSharp.Fonts;
+@using PdfSharp.Pdf;
+@using Tesseract;
+@using filePicker.Data;
+@using filePicker.Helpers;
+@using filePicker.Logic;
+@using filePicker.Model;
+@inject ImageLogic imgs;
+
+@inject IFolderPicker folderPicker
+
+<button class="btn btn-primary" @onclick="Generate">Generate</button>
+<button @onclick="ClearData" class="btn btn-primary">Clear</button>
+<div class="gallery-container">
+    @foreach (var image in ImageArray)
+    {
+        <CardImage img="@image" change="@StateHasChanged"></CardImage>
+    }
+</div>
+
+    <ul class="pagination pagination-wrapper">
+        <li class="page-item">
+            <span class="page-link" @onclick="() => {if(page - 1 > 0) ChangePage(page - 1);}">Previous</span>
+        </li>
+        @for (int i = 1; i <= ImageArray.TotalPages; i++)
+        {
+            int j = i;
+            @if (i == page)
+            {
+                <li class="page-item active" aria-current="page">
+                    <span class="page-link" aria-label="@i" @onclick="() =>ChangePage(j)">@i</span>
+                </li>
+            }
+            else
+            {
+                <li class="page-item" aria-current="page">
+                    <span class="page-link" @onclick="() => ChangePage(j)">@i</span>
+                </li>
+            }
+
+
+        }
+        <li class="page-item">
+            <span class="page-link" @onclick="() => {if(page + 1 <= ImageArray.TotalPages) ChangePage(page + 1);}">Next</span>
+        </li>
+
+    </ul>
+@code {
+    [Parameter]
+    public PaginatedList<ImageModel> ImageArray { get; set; }
+
+    [Parameter]
+    public Action<int> ChangePage{ get; set; }
+
+    [Parameter]
+    public Action<bool> setLoading { get; set; }
+    [Parameter]
+    public Action StateChangedParent { get; set; }
+
+    [Parameter]
+    public int page { get; set; }
+
+    private async Task Generate()
+    {
+        IGenerator generator = new PdfImageGenerator(imgs, folderPicker);
+        await this.InvokeAsync(() =>
+        {
+            setLoading(true);
+        });
+        var result = await generator.Generate();
+        setLoading(false);
+        if(!result)
+        {
+            return;
+        }
+        imgs.ClearAll();
+        GC.Collect();
+        StateChangedParent();
+
+    }
+
+    private void ClearData()
+    {
+        imgs.ClearAll();
+        StateChangedParent();
+    }
+}

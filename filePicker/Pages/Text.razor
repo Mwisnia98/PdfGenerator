@@ -1,0 +1,144 @@
+﻿@page "/text"
+@using filePicker.Extensions;
+@using filePicker.Helpers;
+@using filePicker.Logic;
+@using filePicker.Pages.components;
+@inject IFolderPicker folderPicker;
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<h3>Text</h3>
+
+
+@if (Loading)
+{
+    <Loader />
+}
+<div class="gallery-wrapper">
+    @if (!LoadedImg) {
+        <button class="btn btn-primary" @onclick="LoadFilesChange">Pick images</button>
+    }
+    else {
+        <button class="btn btn-primary" @onclick="CreateText">Generate text</button>
+        <button class="btn btn-success" @onclick="EditImage">Edit Image</button>
+        <button class="btn btn-danger" @onclick="Clear">Clear</button>
+    }
+</div>
+
+@if(!string.IsNullOrEmpty(imgs))
+{
+    <div class="w-100 h-75 d-flex justify-content-center flex-column align-items-center gap-3">
+        <img src="@imgs" style="object-fit:contain" width="300" />
+        @if (!string.IsNullOrEmpty(resultText))
+        {
+            <textarea cols="50" rows="50" onchange="@module.">@resultText</textarea>
+        }
+    </div>
+}
+
+@code {
+    private bool Loading { get; set; } = false;
+    private bool LoadedImg { get; set; } = false;
+
+    public string imgs { get; set; } = "";
+    public string pathToImage { get; set; } = "";
+    public string resultText { get; set; } = "";
+
+    private DotNetObjectReference<Text>? objRef;
+
+    private IJSObjectReference? module;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/react/main.js");
+            objRef = DotNetObjectReference.Create(this);
+
+        }
+
+
+    }
+
+    private async Task LoadFilesChange()
+    {
+        await this.InvokeAsync(() =>
+        {
+            Loading = true;
+            StateHasChanged();
+        });
+        await this.InvokeAsync(async () =>
+        {
+            var result = await folderPicker.PickFiles("Pick images to text");
+            await result.CopyFileAndRemoveOrientation(FileHelper.pathResource);
+            imgs = result.First().FullPath;
+
+            pathToImage = imgs;
+            imgs = pathToImage.getBase64FromFile(null, null, 100);
+            Loading = false;
+            LoadedImg = true;
+            StateHasChanged();
+        });
+
+    }
+
+    private async Task CreateText()
+    {
+
+        await this.InvokeAsync(() =>
+        {
+            Loading = true;
+            StateHasChanged();
+
+        });
+        await this.InvokeAsync(() =>
+        {
+            ImageText text = new();
+
+            var split = imgs.Split(",");
+            var result = text.GetText(Convert.FromBase64String(split[1]));
+            resultText = result;
+            Loading = false;
+            StateHasChanged();
+            GC.Collect();
+        });
+    }
+
+    private async Task EditImage()
+    {
+        await module.InvokeVoidAsync("render", objRef, pathToImage.getBase64FromFile(null, null, 100), "Edit");
+        GC.Collect();
+    }
+
+    [JSInvokable]
+    public async Task ChangedImageFromZoom(string base64, string name)
+    {
+        imgs = base64;
+        this.StateHasChanged();
+    }
+
+
+
+    private async Task Clear()
+    {
+        imgs = "";
+        pathToImage = "";
+        resultText = "";
+        LoadedImg = false;
+        StateHasChanged();
+
+    }
+
+    private void OnTextArea (ChangeEventArgs e)
+    {
+        module.InvokeVoidAsync("showPrompt", "test");
+    }
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        if (module is not null)
+        {
+            await module.DisposeAsync();
+        }
+    }
+}
